@@ -1,6 +1,6 @@
 import re
 import functools
-with open(r"/Users/taylorhood/Documents/Projects/AdventOfCode2024/day5/data.txt") as file:
+with open(r"/Users/redacted/Documents/Projects/AdventOfCode2024/day5/data.txt") as file:
     data = file.read()
 
 

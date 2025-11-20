@@ -1,4 +1,4 @@
-with open(r"/Users/taylorhood/Documents/Projects/AdventOfCode2024/day4/data.txt") as file:
+with open(r"/Users/redacted/Documents/Projects/AdventOfCode2024/day4/data.txt") as file:
     data = file.readlines()
 
 def remove_line_break_char(data):
