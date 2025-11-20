@@ -1,51 +1,48 @@
-with open(r"/Users/redacted/Documents/Projects/AdventOfCode2024/day4/data.txt") as file:
+with open(r"/Users/taylorhood/Documents/Projects/AdventOfCode2024/day4/data.txt") as file:
     data = file.readlines()
 
 def remove_line_break_char(data):
     data = [d[:-1] for d in data]
     return data
 
-
-clean_data = [list(line) for line in data]
-
-clean_data1 = remove_line_break_char(data)
+clean_data = remove_line_break_char(data)
 
 def is_valid(text, row, col):
     return 0 <= row < len(text) and 0 <= col < len(text[0])
 
 
-def get_first_diagonal(row, col): 
+def get_first_cross(row, col): 
 
-    diagonals = []
-    
-    diagonals.append([[row -1, col -1], [row +1, col + 1]])
-    return diagonals
+    crosses = []
+    crosses.append([[row -1, col -1], [row +1, col + 1]])
 
-def get_diagonal_x_set(list_of_tuples):
-    # item = [[pair1_row_value, pair1_colum_value], [pair2_row_value, pair2_column_value]]
-    item = list_of_tuples
-    diagonal = [[item[0][0], item[0][1]], [item[1][0], item[1][1]]]
-    counter_diagonal = [[item[0][0], item[1][1]], [item[1][0], item[0][1]]]
+    return crosses
 
-    # result = [[[pair1_row_value, pair1_colum_value], [pair2_row_value, pair2_column_value]], [[pair1_row_value, pair1_colum_value], [pair2_row_value, pair2_column_value]]]
-    # result[0] (diagonal) = [[pair1_row_value (row), pair1_colum_value (col)], [pair2_row_value, pair2_column_value]]
-    # result[1] (cross-diagonal) = [[pair1_row_value, pair1_colum_value], [pair2_row_value, pair2_column_value]]
+def get_criss_cross(cross_coordinates_as_tuple):
+
+    [[Top1,Top2],[Bot1,Bot2]] = cross_coordinates_as_tuple
+    diagonal = [[Top1, Top2], [Bot1, Bot2]]
+    counter_diagonal = [[Top1, Bot2], [Bot1, Top2]]
+
     return diagonal,counter_diagonal
 
-def check_for_MAS(text, list_of_list):
-    # item = [[pair1_row_value, pair1_colum_value], [pair2_row_value, pair2_column_value]]
+def check_for_X_MAS(text, list_of_cross_coordinates_as_tuples):
     count = 0
-    first = ['M', 'S']
-    second = ['M', 'S']
-    for item in list_of_list:
-        diagonals,cross_diagonals = get_diagonal_x_set(item)
-        if is_valid(text,diagonals[0][0],diagonals[0][1]) and text[diagonals[0][0]][diagonals[0][1]] in first:
-             first.remove(text[diagonals[0][0]][diagonals[0][1]])
-             if is_valid(text,diagonals[1][0],diagonals[1][1]) and text[diagonals[1][0]][diagonals[1][1]] in first:
-                    if is_valid(text,cross_diagonals[1][0], cross_diagonals[1][1]) and text[cross_diagonals[0][0]][cross_diagonals[0][1]] in second:
-                        second.remove(text[cross_diagonals[0][0]][cross_diagonals[0][1]])
-                        if is_valid(text,cross_diagonals[1][0], cross_diagonals[1][1]) and text[cross_diagonals[1][0]][cross_diagonals[1][1]] in second:
-                            count += 1
+    for cross in list_of_cross_coordinates_as_tuples:
+        first = ['M', 'S']
+        second = ['M', 'S']
+        diagonals,counter_diagonals = get_criss_cross(cross)
+        [[D1, D2], [D3, D4]] = diagonals
+        [[CD1, CD2], [CD3, CD4]] = counter_diagonals
+        if is_valid(text,D1,D2) and text[D1][D2] in first:
+            first.remove(text[D1][D2])
+            if not (is_valid(text,D3,D4) and text[D3][D4] in first):
+                continue
+            if is_valid(text,CD3, CD4) and text[CD1][CD2] in second:
+                second.remove(text[CD1][CD2])
+                if is_valid(text,CD3, CD4) and text[CD3][CD4] in second:
+                        count += 1
+
     return count
 
 
@@ -54,8 +51,8 @@ def find_cross_strings(text):
     for index_line, line in enumerate(text): 
         for index_char, char in enumerate(line):
             if char == 'A': 
-                neighbors = get_first_diagonal(index_line, index_char)
-                count += check_for_MAS(text,neighbors)
+                neighbors = get_first_cross(index_line, index_char)
+                count += check_for_X_MAS(text,neighbors)
     return count
 
 
@@ -72,4 +69,4 @@ test =[
 'MXMXAXMASX']
 
 
-print(find_cross_strings(clean_data1))
+print(find_cross_strings(clean_data))
