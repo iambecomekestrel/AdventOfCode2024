@@ -1,4 +1,5 @@
 import re
+import functools
 with open(r"/Users/taylorhood/Documents/Projects/AdventOfCode2024/day5/data.txt") as file:
     data = file.read()
 
@@ -6,8 +7,6 @@ with open(r"/Users/taylorhood/Documents/Projects/AdventOfCode2024/day5/data.txt"
 def remove_line_break_char(data):
     data = [d[:-1] for d in data]
     return data
-
-
 
 def get_rules(text):
     rules = re.findall(r"(\d+)\|(\d+)",text)
@@ -19,6 +18,8 @@ def get_rules(text):
             rules_dict[rule[0]] = [rule[1]]
     return rules_dict
 
+RULES = get_rules(data)
+
 def pages_to_print(text):
     pages_strings = re.findall(r"(?m)^(?!.*\|)\d+(?:,\d+)*$",text)
     pages = [page.split(',') for page in pages_strings]
@@ -26,58 +27,18 @@ def pages_to_print(text):
     return pages
 
 def get_median(pages):
-    median = int((len(pages)/2) - .5)
+    median = len(pages) // 2
   
     return pages[median]
 
-def get_int_print_list(print_list):
-    ints=[int(item) for item in print_list]
-    return ints
 
 def good_print_check(rules_dict, print_list):
     for x in range(1,len(print_list)):
         for y in range(0, x):
-            try:
-                if print_list[y] in rules_dict[print_list[x]]:
+                if print_list[y] in rules_dict.get(print_list[x],[]):
                     return False
-            except KeyError as e:
-                continue
+
     return True
-
-
-
-def fix_bad_print(rules_dict, print_list):
-    """takes the bad print list, and isolates all the values that were causing it fail, and reorders them
-    """
-    new_print_list = []
-    issue_store = []
-    new_print_list.append(print_list[0])
-
-    """finds all the bad values and their indexes, and separates them from the 'good' list"""
-    for x in range(1,len(print_list)):
-        for y in range(0, x):
-            if print_list[y] in rules_dict.get(print_list[x],[]):
-                if [x,print_list[x]] not in issue_store:
-                    issue_store.append([x,print_list[x]])
-                    
-        if print_list[y] not in rules_dict.get(print_list[x],[]):
-            new_print_list.append(print_list[x])
-
-    """reinsters the bad values to the first index before they broke"""
-    for item in issue_store:
-        if item[1] in new_print_list:
-            new_print_list.remove(item[1])
-        new_print_list.insert(int(item[0]-1), item[1])
-        
-    """re-runs the list, and repeats the cycle until there are no more fails"""
-    if good_print_check(rules_dict, new_print_list)==True:
-        return new_print_list
-    else:
-        return fix_bad_print(rules_dict,new_print_list)
-
-# 61,13,29 becomes 61,29,13
-# 97,13,75,29,47 becomes 97,75,47,29,13.
-
 
 def check_prints_1(text):
     rules = get_rules(text)
@@ -89,18 +50,33 @@ def check_prints_1(text):
             total += int(get_median(item))
     return total
 
+#Part 2 section
+def compare_pages(page_x, page_y):
+    page_x_rules = RULES.get(page_x,[])
+    page_y_rules = RULES.get(page_y, [])
+    if page_y in page_x_rules:
+    #page_x must come before page_y, they must be swapped
+        return -1
+    if page_x in page_y_rules:
+    #page_x is in the rules of the page after it, so they must swap 
+        return +1
+    else:
+        return 0
+    
+def fix_bad_print(print_list):
+    return sorted(print_list, key=functools.cmp_to_key(compare_pages))
+
+
 def check_prints_2(text):
-    rules = get_rules(text)
+    RULES = get_rules(text)
     pages = pages_to_print(text)
     total = 0
     
     for item in pages:
-        if good_print_check(rules,item)==False:
-            new_item = fix_bad_print(rules,item)
+        if good_print_check(RULES,item)==False:
+            new_item = fix_bad_print(item)
             total += int(get_median(new_item))
     return total
-
-
 
 
 
@@ -134,6 +110,7 @@ test = """
 97,61,53,29,13
 75,29,13
 """
+RULES_TEST = get_rules(test)
 
 # print(check_prints_1(data))
 print(check_prints_2(data))
